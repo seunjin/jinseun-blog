@@ -55,17 +55,20 @@ topic: Progress log setup
 - Panda CSS 초기 세팅 및 기본 랜딩 페이지 스타일링 교체
 - Lefthook + Commitlint 도입으로 Git 훅/커밋 규칙 자동화
 - 테스트 전략(초기 Vitest/Testing Library → Playwright 확장) 문서화
+- Vitest + Testing Library 환경 구성 및 홈 페이지 예제 테스트 추가
 
 ### Decisions (중요 결정)
 - `docs/progress-log.md` 파일을 진행 기록의 단일 소스로 사용
 - Conventional Commits 규칙과 Lefthook 기반 워크플로 채택
 - 테스트 단계는 유닛/컴포넌트 → E2E 순으로 확장
+- `pnpm test`, `pnpm test:watch`를 표준 테스트 명령으로 사용
 
 ### Issues & Fixes (문제/이슈)
 - 없음
 
 ### Tests / Deployment (테스트/배포)
 - `pnpm lint`
+- `pnpm test`
 
 ### Next Steps (다음 할 일)
 - Next.js 초기 세팅 시작 (프로젝트 생성, 기본 페이지 구성 등)

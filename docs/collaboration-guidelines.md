@@ -33,6 +33,8 @@
 - 1단계: `Vitest`와 `@testing-library/react` 조합으로 컴포넌트/유닛 테스트를 구성합니다.
 - 2단계: UI 플로우가 정착되면 `Playwright`로 통합(E2E) 시나리오를 확장합니다.
 - 시각 회귀가 필요하면 Playwright의 스냅샷 기능 또는 별도의 도구를 추가 도입합니다.
+- 실행 명령: `pnpm test`(단발), `pnpm test:watch`(실시간) 사용.
+- `vitest.setup.ts`에서 `@testing-library/jest-dom` 확장과 `next/link` 목을 등록합니다.
 - 새 테스트 도구를 도입하면 실행 스크립트와 활용법을 README와 이 문서에 함께 기록합니다.
 
 ## 향후 확장 아이디어
