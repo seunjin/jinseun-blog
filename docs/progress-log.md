@@ -56,12 +56,14 @@ topic: Progress log setup
 - Lefthook + Commitlint 도입으로 Git 훅/커밋 규칙 자동화
 - 테스트 전략(초기 Vitest/Testing Library → Playwright 확장) 문서화
 - Vitest + Testing Library 환경 구성 및 홈 페이지 예제 테스트 추가
+- 아키텍처 디렉터리 스캐폴드 구축 및 별칭/문서 정리
 
 ### Decisions (중요 결정)
 - `docs/progress-log.md` 파일을 진행 기록의 단일 소스로 사용
 - Conventional Commits 규칙과 Lefthook 기반 워크플로 채택
 - 테스트 단계는 유닛/컴포넌트 → E2E 순으로 확장
 - `pnpm test`, `pnpm test:watch`를 표준 테스트 명령으로 사용
+- 폴더 구조와 별칭은 `docs/architecture.md`를 단일 진실 소스로 유지
 
 ### Issues & Fixes (문제/이슈)
 - 없음

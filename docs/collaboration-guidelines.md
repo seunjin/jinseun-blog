@@ -37,6 +37,11 @@
 - `vitest.setup.ts`에서 `@testing-library/jest-dom` 확장과 `next/link` 목을 등록합니다.
 - 새 테스트 도구를 도입하면 실행 스크립트와 활용법을 README와 이 문서에 함께 기록합니다.
 
+## 아키텍처
+- 최신 디렉터리 구조와 별칭은 `docs/architecture.md`에 정리합니다.
+- 공용 UI는 `src/components/ui|form|layout`, 도메인별 코드는 `src/features/<feature>/` 안에서 관리합니다.
+- 전역 훅은 `src/hooks/`, 도메인 훅은 해당 feature의 `hooks/` 폴더에 둡니다.
+
 ## 향후 확장 아이디어
 - 공통 컴포넌트, 디자인 토큰, 번역 등 추가 규칙이 생기면 해당 섹션을 만들어 정리합니다.
 - 자동화 스크립트(빌드, 테스트, 배포 등)를 도입할 경우 실행 방법과 주의사항을 명시합니다.
