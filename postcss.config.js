@@ -1,7 +1,15 @@
+// const panda = require("@pandacss/postcss");
+
+// module.exports = {
+
+//   plugins: [
+//     panda({
+//       configPath: "./panda.config.ts",
+//     }),
+//   ],
+// };
 module.exports = {
   plugins: {
-    "@pandacss/postcss": {
-      configPath: "./panda.config.ts",
-    },
+    "@pandacss/dev/postcss": {},
   },
 };

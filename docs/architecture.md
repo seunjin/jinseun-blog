@@ -11,10 +11,13 @@ src/
     ui/               # 재사용 가능한 UI 프리미티브
     form/             # 폼·입력 관련 컴포넌트
     layout/           # 레이아웃/레이아웃 헬퍼
+    content/          # MDX 전용 블록 컴포넌트(Callout, Figure 등)
   features/           # 도메인별 모듈 (예: posts, auth 등)
   hooks/              # 전역에서 공유 가능한 커스텀 훅
   lib/                # Supabase 클라이언트, 헬퍼, 공용 유틸
   styles/             # Panda 테마, 디자인 토큰, 글로벌 스타일 확장
+content/
+  posts/             # MDX 기반 콘텐츠 소스 (frontmatter + 본문)
 ```
 
 > 도메인별 훅은 `src/features/<domain>/hooks/`에 배치하고, 공용 훅만 `src/hooks/`에 둡니다.
@@ -26,6 +29,8 @@ src/
 - `@hooks/*` → `src/hooks/*`
 - `@lib/*` → `src/lib/*`
 - `@styles/*` → `src/styles/*`
+- `@content/*` → `content/*`
+- 콘텐츠 블록 컴포넌트는 `src/components/content`에서 관리하고 MDX에서 import 없이 사용
 - 라우트 그룹 예시: `src/app/(public)/archive/page.tsx`, `src/app/(admin)/admin/page.tsx`
 - Panda CSS는 `postcss.config.js`의 `@pandacss/postcss` 플러그인을 통해 클래스 추출을 수행합니다.
 

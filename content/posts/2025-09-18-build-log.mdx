@@ -1,0 +1,39 @@
+---
+slug: next-supabase-panda-foundation
+title: Next + Supabase + Panda CSS 초기 설계 노트
+date: 2025-09-18
+category: build-log
+tags:
+  - nextjs
+  - supabase
+  - panda-css
+summary: 아키텍처 구조와 관리자 라우트 전략을 어떻게 잡았는지에 대한 기록입니다.
+heroImage: https://images.unsplash.it/small?workspace
+---
+
+# 풀스택 기초 다지기
+
+Next.js App Router를 중심에 두고, Supabase로 인증과 데이터를 맡기며, Panda CSS로 스타일 시스템을 통일하는 그림을 확정했습니다.
+
+## 폴더 구조 스케치
+
+```
+src/
+  app/(public)
+  app/(admin)
+  features/
+  components/ui
+  lib/
+```
+
+- `(public)` 그룹은 방문자가 보게 될 페이지들만 담당합니다.
+- `(admin)` 그룹은 관리자용 대시보드, 콘텐츠/카테고리 관리, 설정 페이지를 모아둡니다.
+- `features/`는 도메인별 로직을 모듈화해 재사용성을 높입니다.
+
+## 다음 단계
+
+1. 목업 데이터를 연결해 Archive 리스트/상세 흐름을 검증
+2. Supabase Auth를 붙여 `/admin` 진입을 보호
+3. 카테고리/태그 CRUD와 미디어 업로드 UX 프로토타입 작성
+
+> 라우팅이 분리되니까 UX도 명확해지고, 테스트 작성도 쉬워지더군요.

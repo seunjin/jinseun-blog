@@ -44,6 +44,7 @@
 - **글 템플릿**: 각 카테고리별 핵심 구성 정의 (예: 프로젝트는 `문제 → 해결 → 결과 → 회고`)
 - **프로젝트 업데이트**: 진행 상태(아이디어/진행 중/완료)와 업데이트 로그를 함께 기록
 - **미디어 활용**: 코드 스니펫, 다이어그램, 링크 미리보기 등 가독성을 위한 시각 요소 적극 활용
+- **콘텐츠 블록**: Panda CSS 기반 MDX 컴포넌트(Callout, Figure, Highlight 등)를 공용으로 제공해 일관된 표현 유지
 - **다국어 여부**: 우선 한글 중심, 필요 시 주요 글에 영어 요약 추가 고려
 
 ## 5. 정보 구조 & 네비게이션
@@ -54,6 +55,7 @@
 ## 6. 데이터 & 기능 요구사항
 - 콘텐츠 저장 방식: Supabase(PostgreSQL) 기반 테이블 설계
   - posts, projects, timeline_events, resources, tags 등
+- 목업 단계에서는 `content/posts/*.mdx`로 작성(Frontmatter + MDX 본문), 이후 Supabase에는 Markdown/미디어 URL을 저장
 - 분류 관리: `categories`, `tags` 테이블을 두고 관리자에서 CRUD, 빈 데이터 시 기본 프리셋 제공
 - 인증/관리: Admin 대시보드 혹은 CMS 연동(향후 Strapi/Keystatic 고려)
 - 댓글/피드백: 초기에는 비활성, 이후 외부 서비스(utterances/ giscus) 검토

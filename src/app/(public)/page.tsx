@@ -1,3 +1,4 @@
+import { posts } from "@content/posts";
 import Link from "next/link";
 import { css } from "@/styled-system/css";
 import { hstack, stack } from "@/styled-system/patterns";
@@ -79,6 +80,8 @@ const secondaryButtonClass = css({
 });
 
 export default function Home() {
+  const latest = posts[0];
+
   return (
     <section className={pageClass}>
       <div
@@ -97,11 +100,14 @@ export default function Home() {
             flexWrap: "wrap",
           })}
         >
-          <Link className={primaryButtonClass} href="#latest">
+          <Link
+            className={primaryButtonClass}
+            href={latest ? `/archive/${latest.metadata.slug}` : "/archive"}
+          >
             Read latest updates
           </Link>
-          <Link className={secondaryButtonClass} href="#roadmap">
-            View roadmap
+          <Link className={secondaryButtonClass} href="/archive">
+            Browse archive
           </Link>
         </div>
       </div>

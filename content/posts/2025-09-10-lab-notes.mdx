@@ -1,0 +1,49 @@
+---
+slug: panda-utility-lab
+title: Panda CSS 패턴 실험 노트
+date: 2025-09-10
+category: projects
+tags:
+  - design-system
+  - css
+summary: Panda 패턴과 토큰을 활용해 반응형 컴포넌트를 빠르게 조합해 본 경험을 공유합니다.
+heroImage: https://images.unsplash.it/small?design
+---
+
+# Panda 패턴 조합하기
+
+Panda CSS의 `stack`, `hstack`, `grid` 패턴을 활용하면 레이아웃을 선언적으로 표현할 수 있습니다. 특히 다단 디스플레이에서 gap과 wrap을 조합해 다양한 레이아웃을 손쉽게 구현할 수 있었어요.
+
+<Figure
+  src="https://images.unsplash.it/1200/675?grid"
+  alt="Panda CSS patterns"
+  caption="패턴 조합으로 만든 대시보드 배치 예시"
+  width={1200}
+  height={675}
+ />
+
+```tsx
+import { hstack } from "@/styled-system/patterns";
+
+const actions = hstack({
+  gap: "4",
+  flexWrap: "wrap",
+  justify: "space-between",
+});
+```
+
+<Callout type="tip" title="레이아웃 팁">
+패턴을 사용할 때는 gap과 wrap 조합만으로도 대부분의 반응형 UI를 커버할 수 있습니다. 기본 토큰을 사용하면 다크 모드에서도 색상 대비가 자동으로 맞춰집니다.
+</Callout>
+
+## 실험에서 얻은 인사이트
+
+- 토큰 기반 spacing과 typography만으로도 일관성을 유지하기 쉬웠습니다.
+- 컴포넌트 레벨에서 variant를 정의해두면, 관리자 페이지에서도 재사용이 수월합니다.
+- 앞으로는 다크 모드 대비 토큰과 접근성(A11y) 체크리스트를 함께 정리해야겠습니다.
+
+<Highlight>
+  다음 실험은 Supabase Storage와 연결한 **미디어 업로드 모달**과 MDX를 엮는 데 둘게요. Vitest로 패턴 유틸 테스트도 차근차근 준비 중입니다.
+</Highlight>
+
+— 계속 업데이트 예정!

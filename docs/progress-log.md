@@ -61,6 +61,8 @@ topic: Progress log setup
 - Archive 중심 구조 및 1차 카테고리 전략 재정비
 - 관리자 워크스페이스와 카테고리 CRUD 요구사항 정의
 - `(public)` / `(admin)` 라우트 그룹과 초기 페이지 스캐폴드 구축
+- MDX 콘텐츠 목업(`content/posts`)과 Archive 리스트/상세 페이지 연결
+- Panda + MDX 조합을 위한 콘텐츠 컴포넌트(Callout, Figure, Highlight) 추가
 
 ### Decisions (중요 결정)
 - `docs/progress-log.md` 파일을 진행 기록의 단일 소스로 사용
@@ -71,6 +73,8 @@ topic: Progress log setup
 - 제품 기획 변경은 `docs/product-plan.md`를 통해 관리
 - `(admin)` 라우트 그룹과 Supabase 권한 모델을 전제로 관리 기능 설계
 - 기본 공개/관리자 페이지 구조를 Route Group 기반으로 유지
+- 콘텐츠는 Supabase 도입 전까지 MDX 기반으로 작성하고, 관리자에서 Markdown/미디어 업로드 흐름을 설계
+- MDX용 컴포넌트는 `src/components/content`에서 Panda 스타일로 관리
 
 ### Issues & Fixes (문제/이슈)
 - 없음

@@ -1,4 +1,15 @@
 import { render, screen } from "@testing-library/react";
+
+vi.mock("@content/posts", () => ({
+  posts: [
+    {
+      metadata: {
+        slug: "mock-post",
+      },
+    },
+  ],
+}));
+
 import Home from "./page";
 
 describe("Home", () => {
@@ -20,10 +31,9 @@ describe("Home", () => {
 
     expect(
       screen.getByRole("link", { name: /read latest updates/i }),
-    ).toHaveAttribute("href", "#latest");
-    expect(screen.getByRole("link", { name: /view roadmap/i })).toHaveAttribute(
-      "href",
-      "#roadmap",
-    );
+    ).toHaveAttribute("href", "/archive/mock-post");
+    expect(
+      screen.getByRole("link", { name: /browse archive/i }),
+    ).toHaveAttribute("href", "/archive");
   });
 });
