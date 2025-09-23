@@ -17,6 +17,9 @@ export default defineConfig({
   theme: {
     extend: {},
   },
+  themes: {},
+  // 약어 속성을 허용할지 여부
+  shorthands: false,
 
   // Emit generated artifacts alongside source code
   outdir: "src/styled-system",
