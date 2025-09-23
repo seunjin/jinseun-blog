@@ -27,6 +27,7 @@ src/
 - `@lib/*` → `src/lib/*`
 - `@styles/*` → `src/styles/*`
 - 라우트 그룹 예시: `src/app/(public)/archive/page.tsx`, `src/app/(admin)/admin/page.tsx`
+- Panda CSS는 `postcss.config.js`의 `@pandacss/postcss` 플러그인을 통해 클래스 추출을 수행합니다.
 
 Vitest 설정(`vitest.config.ts`)과 TypeScript(`tsconfig.json`) 모두 동일한 별칭을 공유합니다.
 
