@@ -41,6 +41,8 @@
 - 최신 디렉터리 구조와 별칭은 `docs/architecture.md`에 정리합니다.
 - 공용 UI는 `src/components/ui|form|layout`, 도메인별 코드는 `src/features/<feature>/` 안에서 관리합니다.
 - 전역 훅은 `src/hooks/`, 도메인 훅은 해당 feature의 `hooks/` 폴더에 둡니다.
+- 전체 페이지/콘텐츠 기획은 `docs/product-plan.md`를 기준으로 조율합니다.
+- 관리자 전용 기능은 `(admin)` 라우트 그룹과 `features/admin/*` 모듈에서 분리 관리합니다.
 
 ## 향후 확장 아이디어
 - 공통 컴포넌트, 디자인 토큰, 번역 등 추가 규칙이 생기면 해당 섹션을 만들어 정리합니다.

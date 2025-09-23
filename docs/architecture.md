@@ -4,6 +4,9 @@
 ```
 src/
   app/                # Next.js App Router 엔트리, 라우트/레이아웃/서버 액션
+    (public)/         # 공개 페이지 (Home, Archive, About)
+    (admin)/          # 관리자 전용 라우트 그룹, 인증 필수
+      admin/          # 실제 URL 세그먼트(`/admin`)
   components/
     ui/               # 재사용 가능한 UI 프리미티브
     form/             # 폼·입력 관련 컴포넌트
@@ -23,6 +26,7 @@ src/
 - `@hooks/*` → `src/hooks/*`
 - `@lib/*` → `src/lib/*`
 - `@styles/*` → `src/styles/*`
+- 라우트 그룹 예시: `src/app/(public)/archive/page.tsx`, `src/app/(admin)/admin/page.tsx`
 
 Vitest 설정(`vitest.config.ts`)과 TypeScript(`tsconfig.json`) 모두 동일한 별칭을 공유합니다.
 
