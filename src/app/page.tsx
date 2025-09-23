@@ -94,7 +94,7 @@ export default function Home() {
           className={hstack({
             gap: "4",
             justify: "center",
-            wrap: "wrap",
+            flexWrap: "wrap",
           })}
         >
           <Link className={primaryButtonClass} href="#latest">
