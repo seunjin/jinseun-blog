@@ -63,6 +63,7 @@ topic: Progress log setup
 - `(public)` / `(admin)` 라우트 그룹과 초기 페이지 스캐폴드 구축
 - MDX 콘텐츠 목업(`content/posts`)과 Archive 리스트/상세 페이지 연결
 - Panda + MDX 조합을 위한 콘텐츠 컴포넌트(Callout, Figure, Highlight) 추가
+- Supabase 클라이언트 팩토리(`src/lib/supabase`)와 env 헬퍼 구축
 
 ### Decisions (중요 결정)
 - `docs/progress-log.md` 파일을 진행 기록의 단일 소스로 사용
@@ -75,6 +76,7 @@ topic: Progress log setup
 - 기본 공개/관리자 페이지 구조를 Route Group 기반으로 유지
 - 콘텐츠는 Supabase 도입 전까지 MDX 기반으로 작성하고, 관리자에서 Markdown/미디어 업로드 흐름을 설계
 - MDX용 컴포넌트는 `src/components/content`에서 Panda 스타일로 관리
+- Supabase 환경 변수는 `.env.local`에 주입하고, 클라이언트 생성 유틸을 통해 접근
 
 ### Issues & Fixes (문제/이슈)
 - 없음

@@ -5,6 +5,7 @@
 ## 커뮤니케이션
 - Codex의 모든 작업 결과 및 요약은 기본적으로 **한글**로 제공합니다.
 - 필요 시 영어가 더 적합한 용어나 코드 스니펫은 그대로 사용하되, 주변 설명은 한글로 덧붙입니다.
+- 코드 주석도 기본적으로 **한글**을 사용합니다. 외부 용어나 표준 명칭이 필요한 경우 한글 설명과 함께 병기합니다.
 
 ## 작업 기록
 - 세션마다 `docs/progress-log.md` 템플릿을 복사해 날짜별로 기록을 남깁니다.
@@ -43,6 +44,8 @@
 - 전역 훅은 `src/hooks/`, 도메인 훅은 해당 feature의 `hooks/` 폴더에 둡니다.
 - 전체 페이지/콘텐츠 기획은 `docs/product-plan.md`를 기준으로 조율합니다.
 - 관리자 전용 기능은 `(admin)` 라우트 그룹과 `features/admin/*` 모듈에서 분리 관리합니다.
+- Supabase 환경 변수는 `.env.local`에만 보관하고, `NEXT_PUBLIC_SUPABASE_URL`/`NEXT_PUBLIC_SUPABASE_ANON_KEY`/`SUPABASE_SERVICE_ROLE_KEY`를 사용합니다.
+- Supabase 클라이언트는 `src/lib/supabase`의 팩토리(`createSupabaseBrowserClient`, `createSupabaseServerClient`, `createSupabaseAdminClient`)를 이용합니다.
 
 ## 향후 확장 아이디어
 - 공통 컴포넌트, 디자인 토큰, 번역 등 추가 규칙이 생기면 해당 섹션을 만들어 정리합니다.
