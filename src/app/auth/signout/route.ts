@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(new URL("/signin?reason=env", req.url));
   }
 
-  const res = NextResponse.redirect(new URL("/signin", req.url));
+  const res = NextResponse.redirect(new URL("/", req.url));
   const supabase = createServerClient(url, anon, {
     cookies: {
       async getAll() {
