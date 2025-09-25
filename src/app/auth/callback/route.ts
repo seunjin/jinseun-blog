@@ -40,6 +40,8 @@ export async function GET(req: NextRequest) {
   if (allowList.length > 0) {
     const { data } = await supabase.auth.getUser();
     const email = data.user?.email?.toLowerCase();
+    // 임시 디버그: 현재 세션 이메일과 허용 목록 출력
+    console.log("[auth/callback] debug", { email, allowList });
     if (!email || !allowList.includes(email)) {
       // 차단 대상 계정은 즉시 정리(관리자 권한으로 삭제)
       try {

@@ -34,6 +34,19 @@ export async function middleware(req: NextRequest) {
 
   // 보호 경로: /admin 하위
   if (req.nextUrl.pathname.startsWith("/admin")) {
+    // 임시 디버그: 세션/이메일/허용 목록 출력
+    const email = session?.user.email?.toLowerCase();
+    const allowList = (process.env.ADMIN_ALLOWED_EMAILS || "")
+      .split(",")
+      .map((s) => s.trim().toLowerCase())
+      .filter(Boolean);
+    console.log("[middleware] debug", {
+      path: req.nextUrl.pathname,
+      hasSession: !!session,
+      email,
+      allowList,
+    });
+
     // 세션이 없으면 로그인 페이지로 이동
     if (!session) {
       const redirectUrl = new URL("/signin", req.url);
@@ -42,12 +55,7 @@ export async function middleware(req: NextRequest) {
     }
 
     // 허용 이메일 목록(쉼표 구분)이 설정되었다면 검사
-    const allowList = (process.env.ADMIN_ALLOWED_EMAILS || "")
-      .split(",")
-      .map((s) => s.trim().toLowerCase())
-      .filter(Boolean);
     if (allowList.length > 0) {
-      const email = session.user.email?.toLowerCase();
       if (!email || !allowList.includes(email)) {
         const forbidden = new URL("/signin", req.url);
         forbidden.searchParams.set("reason", "forbidden");
