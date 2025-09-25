@@ -29,5 +29,8 @@ export async function GET(req: NextRequest) {
   });
 
   await supabase.auth.signOut();
+  // 혹시 모를 잔여 쿠키를 수동으로 제거 (라이브러리 setAll 안전망)
+  res.cookies.delete("sb-access-token");
+  res.cookies.delete("sb-refresh-token");
   return res;
 }

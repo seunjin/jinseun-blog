@@ -61,5 +61,5 @@ export async function middleware(req: NextRequest) {
 
 // 이 미들웨어가 적용될 경로 매칭
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: ["/admin", "/admin/:path*"],
 };
