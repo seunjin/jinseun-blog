@@ -1,5 +1,7 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { css } from "@/styled-system/css";
 
 const layoutClass = css({
@@ -24,7 +26,30 @@ const contentClass = css({
   padding: { base: "4", md: "8" },
 });
 
-export default function AdminLayout({ children }: { children: ReactNode }) {
+export default async function AdminLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  // 서버 사이드 가드: 세션/허용 이메일 확인
+  const supabase = createSupabaseServerClient();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  // 세션이 없는 경우, 미들웨어에서 이미 redirect 파라미터를 붙여 /signin으로 보냅니다.
+  // 여기서는 추가 리다이렉트를 하지 않아 원래 경로 정보가 보존되도록 합니다.
+
+  const allowList = (process.env.ADMIN_ALLOWED_EMAILS || "")
+    .split(",")
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean);
+  if (allowList.length > 0 && session) {
+    const email = session.user.email?.toLowerCase();
+    if (!email || !allowList.includes(email))
+      redirect("/signin?reason=forbidden");
+  }
+
   return (
     <div className={layoutClass}>
       <aside className={sidebarClass}>
