@@ -40,6 +40,21 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           <Link href="/admin/content">Content</Link>
           <Link href="/admin/categories">Categories</Link>
           <Link href="/admin/settings">Settings</Link>
+          <Link
+            href="/auth/signout"
+            className={css({
+              marginTop: { base: "0", md: "auto" },
+              paddingInline: "3",
+              paddingBlock: "2",
+              borderRadius: "md",
+              background: "black",
+              color: "white",
+              textAlign: "center",
+              _dark: { background: "white", color: "black" },
+            })}
+          >
+            로그아웃
+          </Link>
         </nav>
       </aside>
       <div className={contentClass}>{children}</div>
