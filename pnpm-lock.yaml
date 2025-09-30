@@ -33,6 +33,9 @@ importers:
       '@types/react-dom':
         specifier: ^19
         version: 19.1.9(@types/react@19.1.16)
+      ky:
+        specifier: ^1.11.0
+        version: 1.11.0
       lefthook:
         specifier: ^1.13.5
         version: 1.13.5
@@ -304,6 +307,10 @@ packages:
   detect-libc@2.1.1:
     resolution: {integrity: sha512-ecqj/sy1jcK1uWrwpR67UhYrIFQ+5WlGxth34WquCbamhFA6hkkwiu37o6J5xCHdo1oixJRfVRw+ywV+Hq/0Aw==}
     engines: {node: '>=8'}
+
+  ky@1.11.0:
+    resolution: {integrity: sha512-NEyo0ICpS0cqSuyoJFMCnHOZJILqXsKhIZlHJGDYaH8OB5IFrGzuBpEwyoMZG6gUKMPrazH30Ax5XKaujvD8ag==}
+    engines: {node: '>=18'}
 
   lefthook-darwin-arm64@1.13.5:
     resolution: {integrity: sha512-BYt5CnAOXasVCS6i+A4ljUo9xru/B5uMFD6EWHhs3R26jGF7mBSDxM3ErzXTUaJRTP0kQI/XBmgqBryBqoqZOQ==}
@@ -624,6 +631,8 @@ snapshots:
 
   detect-libc@2.1.1:
     optional: true
+
+  ky@1.11.0: {}
 
   lefthook-darwin-arm64@1.13.5:
     optional: true
