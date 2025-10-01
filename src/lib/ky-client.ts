@@ -18,6 +18,7 @@
 
 import ky from "@toss/ky";
 import type { KyInstance, Options } from "ky";
+import { ApiResponse, ensureOk, toApiError } from "./api-response";
 
 /**
  * 서버(Node)에서는 절대 URL이 필요하고, 브라우저에서는 상대 경로 허용
@@ -40,8 +41,8 @@ const envBase =
 
 // 서버: 절대 URL 보장 / 브라우저: 없으면 빈 문자열(상대 경로)
 const resolvedPrefixUrl = isServer
-  ? (envBase ?? "http://localhost:3000")
-  : (envBase ?? "");
+  ? envBase ?? "http://localhost:3000"
+  : envBase ?? "";
 /**
  * @description ky의 전역 기본 옵션
  */
@@ -121,8 +122,16 @@ export const http = {
    * @example
    * const users = await http.get<User[]>("users", { searchParams: { page: 1 } });
    */
-  get: <T>(url: string, options?: Options) =>
-    ky클라이언트.get(url, options).json<T>(),
+  get: async <T>(url: string, options?: Options) => {
+    try {
+      const response = await ky클라이언트
+        .get(url, options)
+        .json<ApiResponse<T>>();
+      return ensureOk(response);
+    } catch (error) {
+      throw toApiError(error);
+    }
+  },
 
   /**
    * @description DELETE 요청
@@ -130,7 +139,7 @@ export const http = {
    * await http.delete<void>("users/1");
    */
   delete: <T>(url: string, options?: Options) =>
-    ky클라이언트.delete(url, options).json<T>(),
+    ky클라이언트.delete(url, options).json<ApiResponse<T>>(),
 
   /**
    * @description POST(JSON) 요청 — Content-Type은 ky가 자동 설정
@@ -141,7 +150,7 @@ export const http = {
     (body !== undefined
       ? ky클라이언트.post(url, { ...options, json: body })
       : ky클라이언트.post(url, options)
-    ).json<T>(),
+    ).json<ApiResponse<T>>(),
 
   /**
    * @description PUT(JSON) 요청 — Content-Type은 ky가 자동 설정
@@ -150,7 +159,7 @@ export const http = {
     (body !== undefined
       ? ky클라이언트.put(url, { ...options, json: body })
       : ky클라이언트.put(url, options)
-    ).json<T>(),
+    ).json<ApiResponse<T>>(),
 
   /**
    * @description PATCH(JSON) 요청 — Content-Type은 ky가 자동 설정
@@ -159,5 +168,5 @@ export const http = {
     (body !== undefined
       ? ky클라이언트.patch(url, { ...options, json: body })
       : ky클라이언트.patch(url, options)
-    ).json<T>(),
+    ).json<ApiResponse<T>>(),
 };
