@@ -56,12 +56,12 @@ export type ApiResponse<Data = unknown, Meta = undefined> =
 ## React Query 연동
 `src/app/providers/query-client-provider.tsx`에서 `QueryClientProvider`를 최상위 레이아웃에 추가했습니다. 클라이언트 컴포넌트에서 React Query를 사용할 수 있습니다.
 
-예시 훅: `src/lib/hooks/use-test-greeting.ts`
+예시 훅 아이디어:
 
 ```ts
-export function useTestGreeting(name: string) {
+export function useGreeting(name: string) {
   return useQuery<ApiSuccess<GreetingData>>({
-    queryKey: ["test-greeting", name],
+    queryKey: ["greeting", name] as const,
     queryFn: async () => {
       const response = await http.get<ApiResponse<GreetingData>>("/api/test", {
         searchParams: { name },
@@ -73,7 +73,7 @@ export function useTestGreeting(name: string) {
 }
 ```
 
-- `queryKey`는 `as const` 튜플로 만들면 캐시 키가 안정적으로 추적됩니다.
+- `queryKey`를 튜플로 고정하면 캐시 키가 안정적으로 추적됩니다.
 - `throwHttpErrors: false` 옵션은 반드시 `isOk`/`ensureOk`와 함께 사용해 실패를 놓치지 않도록 하세요.
 - 컴포넌트에서는 `isError`, `data`, `error` 등을 활용해 UI를 구성합니다.
 
