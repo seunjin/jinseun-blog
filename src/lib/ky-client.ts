@@ -1,48 +1,38 @@
 /**
- * @module ky-client
- * @description 공통 API 클라이언트(균형형, Balanced)와 헬퍼를 제공합니다.
+ * Ky 기반 공통 HTTP 클라이언트.
  *
- * # 설계 방향
- * - ky의 기본 동작(throwHttpErrors: true)을 신뢰합니다.
- * - http 계층은 ApiSuccess<Data, Meta> 전체를 반환(확장성 유지).
- * - 데이터만 필요할 때는 httpData.* 또는 React Query select 사용.
- * - 에러는 상위에서 catch하면 항상 ApiError로 표준화됩니다.
- *
- * # withBody 사용 가이드 (중요)
- * - 함수 인자 `body`를 사용하는 경우, `options.json`/`options.body`를 함께 넘기지 마세요.
- *   (혼선을 막기 위해 withBody가 충돌을 자동으로 정리합니다)
- * - JSON 전송 → `json` 사용 (자동 Content-Type: application/json)
- * - FormData/Blob/바이너리/URLSearchParams/문자열 → `body` 사용
- * - JSON + 파일(멀티파트) → FormData에 JSON 문자열(또는 JSON Blob)과 파일을 함께 담아 `body`로 전송
- *
- * ## 사용 예시
+ * ## Quick Start
  * ```ts
- * // JSON POST (Meta 포함)
- * await http.post<{
- *   requestData: { name: string };
- *   responseData: Profile;
- *   responseMeta: { correlationId: string };
- * }>("api/profiles", { name: "jin" });
+ * const response = await http.get<{ responseData: Profile[] }>("api/profiles");
+ * console.log(response.data.length);
  *
- * // 파일 업로드(FormData)
- * const form = new FormData();
- * form.append("image", file);
- * form.append("payload", JSON.stringify({ title: "hello" }));
- * await http.post<{
- *   requestData: FormData;
- *   responseData: UploadResult;
- * }>("api/uploads", form);
+ * // 데이터만 필요한 경우
+ * const profiles = await httpData.get<{ responseData: Profile[] }>("api/profiles");
  * ```
+ *
+ * ## 왜 이 유틸을 쓰나요?
+ * - ky 기본 동작(`throwHttpErrors: true`)을 신뢰하면서도, 모든 호출이 `ApiSuccess`/`ApiError` 규약을 따르도록 강제합니다.
+ * - 성공 응답은 메타 정보까지 포함한 전체 객체를 반환하고, 데이터만 필요하면 `httpData.*`로 축약할 수 있습니다.
+ * - 에러는 항상 `ApiError`로 변환되므로 UI·로깅 레이어에서 일관되게 처리할 수 있습니다.
+ *
+ * ## Body 전달 요약(withBody)
+ * - JSON 전송: `http.post<{ requestData: SomeDto; responseData: R }>(url, dto);`
+ * - 멀티파트/파일: `const form = new FormData(); form.append("file", file); await http.post<{ requestData: FormData; responseData: R }>(url, form);`
+ * - 문자열/URLSearchParams/Blob 등은 그대로 body로 전달되며, ky가 적절한 헤더를 설정합니다.
  */
 
 import ky from "@toss/ky";
 import type { KyInstance, Options } from "ky";
 import {
-  parseApiResponse,
-  ensureOk,
-  toApiErrorAsync,
   type ApiSuccess,
+  ensureOk,
+  parseApiResponse,
+  toApiError,
 } from "./api-response";
+
+// ---------------------------------------------------------------------------
+// Configuration
+// ---------------------------------------------------------------------------
 
 /** 서버(Node)에서는 절대 URL이 필요하고, 브라우저에서는 상대 경로 허용 */
 const isServer = typeof window === "undefined";
@@ -55,7 +45,7 @@ const envBase =
   process.env.NEXT_PUBLIC_SUPABASE_URL ||
   (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined);
 
-// 서버: 절대 URL 보장 / 브라우저: 없으면 빈 문자열(상대 경로)
+// 서버: 절대 URL 보장 / 브라우저: 없으면 상대 경로 사용
 const resolvedPrefixUrl = isServer
   ? envBase ?? "http://localhost:3000"
   : envBase ?? "";
@@ -71,7 +61,7 @@ const 기본옵션: Options = {
 /** 전역 ky 인스턴스 */
 export const ky클라이언트: KyInstance = ky.create(기본옵션);
 
-/** 개별 인스턴스 생성기 */
+/** 필요 시 전역 옵션을 덮어쓰는 개별 ky 인스턴스 생성기 */
 export const ky인스턴스생성 = (옵션?: Options): KyInstance =>
   ky.create({
     ...기본옵션,
@@ -82,198 +72,199 @@ export const ky인스턴스생성 = (옵션?: Options): KyInstance =>
     },
   });
 
-/* ──────────────────────────────────────────────────────────
- *  객체형 제네릭 슬롯
- *  - 읽기 요청(GET/DELETE): { data: T; meta?: M }
- *  - 쓰기 요청(POST/PUT/PATCH): { body?: B; data: T; meta?: M }
- * ────────────────────────────────────────────────────────── */
-type WriteTypes = {
-  requestData?: unknown; // 요청 본문
-  responseData: unknown; // 응답 데이터
-  responseMeta?: unknown; // 응답 부가 정보
+// ---------------------------------------------------------------------------
+// Generic schemas
+// ---------------------------------------------------------------------------
+
+export type HttpReadSchema<Data, Meta = undefined> = {
+  responseData: Data;
+  responseMeta?: Meta;
 };
 
-type ReadTypes = {
-  responseData: unknown; // 응답 데이터
-  responseMeta?: unknown; // 응답 부가 정보
+export type HttpWriteSchema<Body, Data, Meta = undefined> = {
+  requestData?: Body;
+  responseData: Data;
+  responseMeta?: Meta;
 };
-type ResponseDataOf<T extends { responseData: any }> = T["responseData"];
-type ResponseMetaOf<T extends { responseMeta?: any }> = T["responseMeta"];
-type RequestDataOf<T extends { requestData?: any }> = T["requestData"];
+
+type ResponseDataOf<T extends { responseData: unknown }> = T["responseData"];
+type ResponseMetaOf<T extends { responseMeta?: unknown }> = T["responseMeta"];
+type RequestDataOf<T extends { requestData?: unknown }> = T["requestData"];
+
+// ---------------------------------------------------------------------------
+// Body helper
+// ---------------------------------------------------------------------------
 
 /**
- * @description 바디 타입에 따라 자동으로 json/body를 선택합니다.
- *
- * ## 충돌 처리 정책 (문서화)
- * - 함수 인자 `body`가 주어지면 이것이 **최우선**입니다.
- *   - 이 경우, `options.json`/`options.body`는 **무시/제거**되어 혼선을 방지합니다.
- * - 함수 인자 `body`가 없고 `options.json`만 있으면 → JSON 전송
- * - 함수 인자 `body`가 없고 `options.body`만 있으면 → body 전송
- *
- * ## 주의
- * - 호출부에서는 “`body`를 쓰면 `options.json`을 넘기지 않는다”는 원칙을 지키세요.
- * - 멀티파트는 반드시 FormData를 사용하세요. (Content-Type 자동 설정)
+ * ky 옵션과 body 인자를 조합해 적절한 전송 방식을 결정합니다.
+ * - 함수 인자 `body`가 있다면 이것을 우선 적용하고, 기존 `options.json/body`는 제거합니다.
+ * - `body`가 없으면 전달된 옵션을 그대로 사용합니다.
  */
 function withBody(
   options: Options | undefined,
   body: unknown
 ): Options | undefined {
-  // 기반 옵션 얕은 복사: 아래에서 json/body 충돌을 정리
-  let next: Options | undefined = options ? { ...options } : undefined;
+  const next: Options | undefined = options ? { ...options } : undefined;
 
-  // 헬퍼로 body가 들어온 경우 → 최우선
   if (body !== undefined) {
-    // 호출부 혼선을 방지하기 위해 기존 options의 json/body 제거
     if (next) {
-      if ("json" in next) delete (next as any).json;
-      if ("body" in next) delete (next as any).body;
+      if ("json" in next) delete (next as Record<string, unknown>).json;
+      if ("body" in next) delete (next as Record<string, unknown>).body;
     }
 
-    // FormData
     if (typeof FormData !== "undefined" && body instanceof FormData) {
       return { ...next, body };
     }
-    // Blob (파일/JSON Blob 등)
     if (typeof Blob !== "undefined" && body instanceof Blob) {
       return { ...next, body };
     }
-    // ArrayBuffer / TypedArray
     if (
       typeof ArrayBuffer !== "undefined" &&
       (body instanceof ArrayBuffer || ArrayBuffer.isView(body))
     ) {
-      return { ...next, body: body as any };
+      return { ...next, body: body as BodyInit };
     }
-    // URLSearchParams
     if (
       typeof URLSearchParams !== "undefined" &&
       body instanceof URLSearchParams
     ) {
       return { ...next, body };
     }
-    // 문자열
     if (typeof body === "string") {
       return { ...next, body };
     }
-    // 나머지 객체 → JSON
-    return { ...next, json: body as any };
+
+    return { ...next, json: body };
   }
 
-  // body 인자가 없을 때: options에 설정된 json/body를 그대로 사용
   return next;
 }
 
+// ---------------------------------------------------------------------------
+// High-level helpers
+// ---------------------------------------------------------------------------
+
+type ReadSchema = HttpReadSchema<unknown, unknown>;
+type WriteSchema = HttpWriteSchema<unknown, unknown, unknown>;
+
 /**
- * @description HTTP 메소드별 최소 헬퍼 — 항상 ApiSuccess<T, M> 전체 반환
+ * HTTP 메소드 래퍼. 항상 `ApiSuccess` 전체 객체를 반환합니다.
+ * 데이터만 필요할 때는 아래 `httpData`를 사용하세요.
  */
 export const http = {
-  // GET / DELETE: ReadTypes 사용
-  get: async <T extends ReadTypes>(
+  get: async <Schema extends ReadSchema>(
     url: string,
     options?: Options
-  ): Promise<ApiSuccess<ResponseDataOf<T>, ResponseMetaOf<T>>> => {
+  ): Promise<ApiSuccess<ResponseDataOf<Schema>, ResponseMetaOf<Schema>>> => {
     try {
       const res = await ky클라이언트.get(url, options);
       const parsed = await parseApiResponse<
-        ResponseDataOf<T>,
-        ResponseMetaOf<T>
+        ResponseDataOf<Schema>,
+        ResponseMetaOf<Schema>
       >(res);
       return ensureOk(parsed);
-    } catch (e) {
-      throw await toApiErrorAsync(e);
+    } catch (error) {
+      throw await toApiError(error);
     }
   },
 
-  delete: async <T extends ReadTypes>(
+  delete: async <Schema extends ReadSchema>(
     url: string,
     options?: Options
-  ): Promise<ApiSuccess<ResponseDataOf<T>, ResponseMetaOf<T>>> => {
+  ): Promise<ApiSuccess<ResponseDataOf<Schema>, ResponseMetaOf<Schema>>> => {
     try {
       const res = await ky클라이언트.delete(url, options);
       const parsed = await parseApiResponse<
-        ResponseDataOf<T>,
-        ResponseMetaOf<T>
+        ResponseDataOf<Schema>,
+        ResponseMetaOf<Schema>
       >(res);
       return ensureOk(parsed);
-    } catch (e) {
-      throw await toApiErrorAsync(e);
+    } catch (error) {
+      throw await toApiError(error);
     }
   },
 
-  // POST / PUT / PATCH: WriteTypes 사용 (requestData 전달)
-  post: async <T extends WriteTypes>(
+  post: async <Schema extends WriteSchema>(
     url: string,
-    requestData?: RequestDataOf<T>,
+    requestData?: RequestDataOf<Schema>,
     options?: Options
-  ): Promise<ApiSuccess<ResponseDataOf<T>, ResponseMetaOf<T>>> => {
+  ): Promise<ApiSuccess<ResponseDataOf<Schema>, ResponseMetaOf<Schema>>> => {
     try {
       const res = await ky클라이언트.post(url, withBody(options, requestData));
       const parsed = await parseApiResponse<
-        ResponseDataOf<T>,
-        ResponseMetaOf<T>
+        ResponseDataOf<Schema>,
+        ResponseMetaOf<Schema>
       >(res);
       return ensureOk(parsed);
-    } catch (e) {
-      throw await toApiErrorAsync(e);
+    } catch (error) {
+      throw await toApiError(error);
     }
   },
 
-  put: async <T extends WriteTypes>(
+  put: async <Schema extends WriteSchema>(
     url: string,
-    requestData?: RequestDataOf<T>,
+    requestData?: RequestDataOf<Schema>,
     options?: Options
-  ): Promise<ApiSuccess<ResponseDataOf<T>, ResponseMetaOf<T>>> => {
+  ): Promise<ApiSuccess<ResponseDataOf<Schema>, ResponseMetaOf<Schema>>> => {
     try {
       const res = await ky클라이언트.put(url, withBody(options, requestData));
       const parsed = await parseApiResponse<
-        ResponseDataOf<T>,
-        ResponseMetaOf<T>
+        ResponseDataOf<Schema>,
+        ResponseMetaOf<Schema>
       >(res);
       return ensureOk(parsed);
-    } catch (e) {
-      throw await toApiErrorAsync(e);
+    } catch (error) {
+      throw await toApiError(error);
     }
   },
 
-  patch: async <T extends WriteTypes>(
+  patch: async <Schema extends WriteSchema>(
     url: string,
-    requestData?: RequestDataOf<T>,
+    requestData?: RequestDataOf<Schema>,
     options?: Options
-  ): Promise<ApiSuccess<ResponseDataOf<T>, ResponseMetaOf<T>>> => {
+  ): Promise<ApiSuccess<ResponseDataOf<Schema>, ResponseMetaOf<Schema>>> => {
     try {
       const res = await ky클라이언트.patch(url, withBody(options, requestData));
       const parsed = await parseApiResponse<
-        ResponseDataOf<T>,
-        ResponseMetaOf<T>
+        ResponseDataOf<Schema>,
+        ResponseMetaOf<Schema>
       >(res);
       return ensureOk(parsed);
-    } catch (e) {
-      throw await toApiErrorAsync(e);
+    } catch (error) {
+      throw await toApiError(error);
     }
   },
 };
 
-/**
- * @description 데이터만 필요한 경우를 위한 편의 래퍼
- */
+/** 데이터만 필요할 때 사용하는 축약 래퍼 */
 export const httpData = {
-  get: async <T extends ReadTypes>(url: string, options?: Options) =>
-    (await http.get<T>(url, options)).data,
-  delete: async <T extends ReadTypes>(url: string, options?: Options) =>
-    (await http.delete<T>(url, options)).data,
-  post: async <T extends WriteTypes>(
+  get: async <Schema extends ReadSchema>(url: string, options?: Options) =>
+    (await http.get<Schema>(url, options)).data,
+  delete: async <Schema extends ReadSchema>(url: string, options?: Options) =>
+    (await http.delete<Schema>(url, options)).data,
+  post: async <Schema extends WriteSchema>(
     url: string,
-    requestData?: RequestDataOf<T>,
+    requestData?: RequestDataOf<Schema>,
     options?: Options
-  ) => (await http.post<T>(url, requestData, options)).data,
-  put: async <T extends WriteTypes>(
+  ) => (await http.post<Schema>(url, requestData, options)).data,
+  put: async <Schema extends WriteSchema>(
     url: string,
-    requestData?: RequestDataOf<T>,
+    requestData?: RequestDataOf<Schema>,
     options?: Options
-  ) => (await http.put<T>(url, requestData, options)).data,
-  patch: async <T extends WriteTypes>(
+  ) => (await http.put<Schema>(url, requestData, options)).data,
+  patch: async <Schema extends WriteSchema>(
     url: string,
-    requestData?: RequestDataOf<T>,
+    requestData?: RequestDataOf<Schema>,
     options?: Options
-  ) => (await http.patch<T>(url, requestData, options)).data,
+  ) => (await http.patch<Schema>(url, requestData, options)).data,
 };
+
+// ---------------------------------------------------------------------------
+// 참고: 직접 ky를 써야 할 때
+// ---------------------------------------------------------------------------
+
+/**
+ * - 특수 헤더나 ky의 고급 옵션을 써야 한다면 `ky인스턴스생성`으로 별도 인스턴스를 만들고
+ *   `parseApiResponse` → `ensureOk` 조합을 직접 호출하세요.
+ * - multipart + JSON 혼합이 필요한 경우에는 FormData를 활용해 `http.post`에 그대로 넘기는 것이 안전합니다.
+ */
