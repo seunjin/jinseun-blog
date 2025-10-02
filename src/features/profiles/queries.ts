@@ -3,7 +3,7 @@ import { http } from "@/lib/ky-client";
 import type { Profile } from "./types";
 
 export async function fetchProfiles(): Promise<Profile[]> {
-  const res = await http.get<Profile[]>("api/profiles");
+  const res = await http.get<{ responseData: Profile[] }>("api/profiles");
   return res.data; // res는 이미 ApiSuccess<Profile[]> 타입
 }
 

@@ -61,6 +61,7 @@ export function isOk<Data, Meta = unknown>(
 
 /**
  * @description 실패 응답을 표준 Error로 변환합니다.
+ * - 원인 에러를 cause로 보존하여 스택 체인을 유지합니다.
  */
 export class ApiError extends Error {
   code?: string;
@@ -69,8 +70,9 @@ export class ApiError extends Error {
   details?: unknown;
   fields?: Record<string, string[]>;
 
-  constructor(failure: ApiFailure) {
-    super(failure.error?.message ?? failure.message ?? "API Error");
+  constructor(failure: ApiFailure, cause?: unknown) {
+    super(failure.error?.message ?? failure.message ?? "API Error", { cause });
+    this.name = "ApiError";
     this.code = failure.error?.code;
     this.statusCode = failure.statusCode;
     this.correlationId = failure.correlationId;
@@ -117,7 +119,6 @@ async function extractFailureFromHttpError(
   const statusText = res.statusText;
   const ctype = res.headers.get("content-type") || "";
 
-  // 원문 텍스트 확보(JSON 파싱 실패 대비)
   let rawText = "";
   try {
     rawText = await res.clone().text();
@@ -125,15 +126,11 @@ async function extractFailureFromHttpError(
     /* noop */
   }
 
-  // JSON 시도
   if (ctype.includes("application/json")) {
     try {
       const json = JSON.parse(rawText);
       if (looksLikeApiResponse(json)) {
-        if (json.success === false) {
-          return json as ApiFailure;
-        }
-        // HTTP는 실패인데 바디는 성공인 예외 케이스
+        if (json.success === false) return json as ApiFailure;
         return {
           success: false,
           statusCode: status,
@@ -144,7 +141,6 @@ async function extractFailureFromHttpError(
           },
         };
       }
-      // 우리 규약은 아니지만 JSON인 경우
       return {
         success: false,
         statusCode: status,
@@ -158,11 +154,10 @@ async function extractFailureFromHttpError(
         },
       };
     } catch {
-      // content-type은 JSON이지만 파싱 실패 → 텍스트로 처리
+      /* fallthrough to text */
     }
   }
 
-  // 비 JSON/파싱 실패 → 텍스트 축약
   const msg = rawText?.trim?.();
   return {
     success: false,
@@ -179,40 +174,59 @@ async function extractFailureFromHttpError(
  * @description ky 호출에서 던져진 unknown을 ApiError로 안전 변환(비동기 권장)
  * - HTTPError면 response body를 실제로 읽어 ApiFailure로 변환해서 보존합니다.
  * - 네트워크/기타 Error는 statusCode=0으로 통일합니다.
+ * - 원인 에러는 항상 cause로 체인합니다.
  */
 export async function toApiErrorAsync(error: unknown): Promise<ApiError> {
   if (isHTTPError(error)) {
     const failure = await extractFailureFromHttpError(error);
-    return new ApiError(failure);
+    return new ApiError(failure, error);
   }
-  return new ApiError({
-    success: false,
-    statusCode: 0,
-    error: {
-      code: "UNKNOWN_ERROR",
-      message: error instanceof Error ? error.message : "Unknown error",
-      details: error,
+  return new ApiError(
+    {
+      success: false,
+      statusCode: 0,
+      error: {
+        code: "UNKNOWN_ERROR",
+        message: error instanceof Error ? error.message : "Unknown error",
+        details: error,
+      },
     },
-  });
+    error
+  );
 }
 
 /**
  * @description (레거시 호환) 동기 컨텍스트에서 쓸 수 있는 최소 변환기
  *  - HTTPError의 body를 읽지 못하므로 정보가 제한됩니다. 가능하면 toApiErrorAsync 사용 권장.
+ *  - 원인 에러는 cause에 보존합니다.
  */
 export function toApiError(error: unknown): ApiError {
   if (error instanceof Error) {
-    return new ApiError({
+    return new ApiError(
+      {
+        success: false,
+        statusCode: 0,
+        error: {
+          code: "UNKNOWN_ERROR",
+          message: error.message,
+          details: error,
+        },
+      },
+      error
+    );
+  }
+  return new ApiError(
+    {
       success: false,
       statusCode: 0,
-      error: { code: "UNKNOWN_ERROR", message: error.message, details: error },
-    });
-  }
-  return new ApiError({
-    success: false,
-    statusCode: 0,
-    error: { code: "UNKNOWN_ERROR", message: "Unknown error", details: error },
-  });
+      error: {
+        code: "UNKNOWN_ERROR",
+        message: "Unknown error",
+        details: error,
+      },
+    },
+    error
+  );
 }
 
 function isHTTPError(error: unknown): error is HTTPError {
