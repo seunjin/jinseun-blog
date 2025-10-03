@@ -16,8 +16,35 @@ export async function GET(req: Request) {
     await supabase.auth.exchangeCodeForSession(code);
   }
 
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  const email = session?.user.email;
   const redirectTo = searchParams.get("redirectTo") ?? "/admin";
   const safeRedirect = redirectTo.startsWith("/admin") ? redirectTo : "/admin";
+
+  if (!email) {
+    await supabase.auth.signOut();
+    const loginUrl = new URL("/auth/login", req.url);
+    loginUrl.searchParams.set("error", "unauthorized");
+    loginUrl.searchParams.set("redirectTo", safeRedirect);
+    return NextResponse.redirect(loginUrl);
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("email", email)
+    .maybeSingle();
+
+  if (!profile) {
+    await supabase.auth.signOut();
+    const loginUrl = new URL("/auth/login", req.url);
+    loginUrl.searchParams.set("error", "unauthorized");
+    loginUrl.searchParams.set("redirectTo", safeRedirect);
+    return NextResponse.redirect(loginUrl);
+  }
 
   return NextResponse.redirect(new URL(safeRedirect, req.url));
 }
