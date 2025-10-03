@@ -4,11 +4,11 @@ import {
   dehydrate,
 } from "@tanstack/react-query";
 import { Suspense } from "react";
-import Profiles from "./_components/Profiles";
 import { profilesQueryOptions } from "@/features/profiles/queries";
 import { fetchProfilesServer } from "@/features/profiles/server";
+import Profiles from "../_components/Profiles";
 
-export default async function HomePage() {
+export default async function PublicPage() {
   const qc = new QueryClient();
   try {
     const initialProfiles = await fetchProfilesServer();
@@ -18,13 +18,10 @@ export default async function HomePage() {
   }
 
   return (
-    <main className="mx-auto max-w-3xl space-y-6 p-6">
-      <h1 className="text-2xl font-bold">API 테스트</h1>
-      <HydrationBoundary state={dehydrate(qc)}>
-        <Suspense fallback={<>불러오는중…</>}>
-          <Profiles />
-        </Suspense>
-      </HydrationBoundary>
-    </main>
+    <HydrationBoundary state={dehydrate(qc)}>
+      <Suspense fallback={<>불러오는중…</>}>
+        <Profiles />
+      </Suspense>
+    </HydrationBoundary>
   );
 }
