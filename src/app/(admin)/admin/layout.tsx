@@ -1,8 +1,8 @@
-import { redirect } from "next/navigation";
 import { createServerSupabase } from "@/lib/supabase/server-client";
 import Link from "next/link";
-import { CSSProperties } from "react";
+import type { CSSProperties } from "react";
 import { LogoutButton } from "./logout-button";
+import { redirect } from "next/navigation";
 const StyledHeader: CSSProperties = {
   position: "sticky",
   top: "0",
