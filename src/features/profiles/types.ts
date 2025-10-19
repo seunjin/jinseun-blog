@@ -1,7 +1,3 @@
-export type Profile = {
-  id: string;
-  email: string | null;
-  name: string | null;
-  role: string | null;
-  created_at: string | null;
-};
+import { ProfileRow } from "./schema";
+
+export type Profile = ProfileRow;

@@ -1,6 +1,7 @@
 // route.ts (edge 가능)
 import { NextResponse } from "next/server";
 import { createServerSupabase } from "@/lib/supabase/server-client";
+import { fetchProfileByEmailServer } from "@/features/profiles/server";
 
 export async function GET(req: Request) {
   const supabase = await createServerSupabase();
@@ -31,14 +32,9 @@ export async function GET(req: Request) {
     loginUrl.searchParams.set("redirectTo", safeRedirect);
     return NextResponse.redirect(loginUrl);
   }
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("id")
-    .eq("email", email)
-    .maybeSingle();
-
-  if (!profile) {
+  /**이메일로 단일 프로필을 조회합니다. */
+  const checkProfileByEmail = await fetchProfileByEmailServer(email);
+  if (!checkProfileByEmail) {
     await supabase.auth.signOut();
     const loginUrl = new URL("/auth/login", req.url);
     loginUrl.searchParams.set("error", "unauthorized");
