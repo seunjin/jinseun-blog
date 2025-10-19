@@ -4,6 +4,7 @@ let browserClient:
   | ReturnType<typeof createBrowserClient>
   | undefined;
 
+/** 브라우저에서 Supabase 클라이언트를 싱글톤으로 생성합니다. */
 export function createBrowserSupabase() {
   if (!browserClient) {
     browserClient = createBrowserClient(
